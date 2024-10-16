@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:ui_design_with_api/data/models/network_response.dart';
 
@@ -10,6 +11,8 @@ class NetworkCaller{
     try{
       Uri uri = Uri.parse(url);
       final Response response  = await get(uri);
+
+      debugPrinter(uri, response.statusCode, response.body);
 
       if(response.statusCode == 200){
         final decodedData = jsonDecode(response.body);
@@ -40,15 +43,18 @@ class NetworkCaller{
     try{
       Uri uri = Uri.parse(url);
       final Response response  = await post(
-          uri,
+        uri,
         body: jsonEncode(body),
         headers: {
             "Content-Type" : "application/json",
         }
       );
 
+      debugPrinter(uri, response.statusCode, response.body);
+
       if(response.statusCode == 200){
         final decodedData = jsonDecode(response.body);
+
         return NetworkResponse(
             isSuccess: true,
             statusCode: response.statusCode,
@@ -59,6 +65,7 @@ class NetworkCaller{
         return NetworkResponse(
           isSuccess: false,
           statusCode: response.statusCode,
+          errorMessage: jsonDecode(response.body)["data"]
         );
       }
     }
@@ -69,6 +76,12 @@ class NetworkCaller{
           errorMessage: e.toString()
       );
     }
+  }
+
+  static void debugPrinter(Uri uri, int statusCode, dynamic body) {
+    debugPrint("url: $uri");
+    debugPrint("Response code:$statusCode");
+    debugPrint(body);
   }
 
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
 import '../screens/profile_screen.dart';
 import '../screens/sign_in_screen.dart';
 import '../utils/app_color.dart';
@@ -50,7 +51,8 @@ class TaskMangerAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             IconButton(
-              onPressed: () {
+              onPressed: () async{
+                await AuthController.clearUserData();
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(

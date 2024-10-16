@@ -1,6 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
 import 'package:ui_design_with_api/UI/widgets/center_circular_progress_indicator.dart';
+import 'package:ui_design_with_api/UI/widgets/snack_bar_message.dart';
+import 'package:ui_design_with_api/data/models/network_response.dart';
+import 'package:ui_design_with_api/data/services/network_caller.dart';
+import 'package:ui_design_with_api/data/utils/urls.dart';
 import '../widgets/screen_background.dart';
 import 'forgot_password_email_screen.dart';
 import 'main_bottom_navbar_screen.dart';
@@ -148,11 +153,39 @@ class _SignInScreenState extends State<SignInScreen> {
 
 
   void _onTapNextButton(){
+    FocusScope.of(context).unfocus();
     if(!_formKey.currentState!.validate()) return;
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainBottomNavbarScreen()), (route) => false,);
+
+    _signIn();
   }
 
+  Future<void> _signIn() async{
+    setState(() {
+      _isLoginProgress = true;
+    });
 
+    final NetworkResponse networkResponse = await NetworkCaller.postRequest(
+        url: Urls.login,
+        body: {
+          "email": _emailController.text.trim(),
+          "password": _passwordController.text
+        }
+    );
+
+    setState(() {
+      _isLoginProgress = false;
+    });
+
+    if(networkResponse.isSuccess){
+      await AuthController.saveAccessToken(networkResponse.responseData["token"]);
+
+      showSnackBarMessage(context, "Login Successful");
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainBottomNavbarScreen()), (route) => false,);
+    }
+    else{
+      showSnackBarMessage(context, networkResponse.errorMessage, true);
+    }
+  }
 
   void _onTapSignUp(){
     Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpScreen()));
