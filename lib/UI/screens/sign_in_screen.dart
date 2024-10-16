@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-
+import 'package:ui_design_with_api/UI/widgets/center_circular_progress_indicator.dart';
 import '../widgets/screen_background.dart';
 import 'forgot_password_email_screen.dart';
 import 'main_bottom_navbar_screen.dart';
@@ -14,6 +14,20 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isLoginProgress = false;
+
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -44,29 +58,55 @@ class _SignInScreenState extends State<SignInScreen> {
 
 
   Widget _buildSignInForm(){
-    return Column(
-      children: [
-        TextFormField(
-          keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(
-              hintText: "Email"
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+                hintText: "Email"
+            ),
+            validator: (value){
+              if(value?.isEmpty ?? true){
+                return "Please input you email";
+              }
+              if(!value!.contains("@")){
+                return "Please enter a valid email";
+              }
+              return null;
+            },
           ),
-        ),
 
-        const SizedBox(height: 8),
-        TextFormField(
-          obscureText: true,
-          decoration: const InputDecoration(
-              hintText: "Password"
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _passwordController,
+            obscureText: true,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+                hintText: "Password"
+            ),
+            validator: (value){
+              if(value?.isEmpty ?? true){
+                return "Please input you password";
+              }
+              return null;
+            },
           ),
-        ),
 
-        const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: _onTapNextButton,
-          child: const Icon(Icons.arrow_circle_right_outlined)
-        ),
-      ],
+          const SizedBox(height: 24),
+          Visibility(
+            visible: !_isLoginProgress,
+            replacement: const CenterCircularProgressIndicator(),
+            child: ElevatedButton(
+              onPressed: _onTapNextButton,
+              child: const Icon(Icons.arrow_circle_right_outlined)
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -108,8 +148,11 @@ class _SignInScreenState extends State<SignInScreen> {
 
 
   void _onTapNextButton(){
+    if(!_formKey.currentState!.validate()) return;
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainBottomNavbarScreen()), (route) => false,);
   }
+
+
 
   void _onTapSignUp(){
     Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpScreen()));
