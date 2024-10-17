@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
+import 'package:ui_design_with_api/UI/widgets/center_circular_progress_indicator.dart';
+import 'package:ui_design_with_api/UI/widgets/snack_bar_message.dart';
+import 'package:ui_design_with_api/data/models/network_response.dart';
+import 'package:ui_design_with_api/data/services/network_caller.dart';
+import 'package:ui_design_with_api/data/utils/urls.dart';
 
 import '../widgets/task_manager_app_bar.dart';
 
@@ -12,6 +18,10 @@ class AddNewTaskScreen extends StatefulWidget {
 class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _addNewTaskInProgress = false;
+
+
 
 
   @override
@@ -49,28 +59,86 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   }
 
   Widget _buildAddNewTaskForm() {
-    return Column(
-      children: [
-        TextFormField(
-          keyboardType: TextInputType.text,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(hintText: "Title"),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          keyboardType: TextInputType.text,
-          textInputAction: TextInputAction.done,
-          maxLines: 5,
-          decoration: const InputDecoration(hintText: "Description"),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _addNewTask,
-          child: const Icon(Icons.arrow_circle_right_outlined),
-        )
-      ],
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _titleController,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.next,
+            decoration: const InputDecoration(hintText: "Title"),
+            validator: (value){
+              if(value?.trim().isEmpty ?? true){
+                return "Enter your title";
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _descriptionController,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.done,
+            maxLines: 5,
+            decoration: const InputDecoration(hintText: "Description"),
+            validator: (value){
+              if(value?.trim().isEmpty ?? true){
+                return "Enter your description";
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 16),
+          Visibility(
+            visible: !_addNewTaskInProgress,
+            replacement: const CenterCircularProgressIndicator(),
+            child: ElevatedButton(
+              onPressed: _addNewTask,
+              child: const Icon(Icons.arrow_circle_right_outlined),
+            ),
+          )
+        ],
+      ),
     );
   }
 
-  void _addNewTask() {}
+  void _addNewTask() async{
+    if(!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _addNewTaskInProgress = true;
+    });
+
+    Map<String, dynamic> addNewTask = {
+      "title": _titleController.text.trim(),
+      "description": _descriptionController.text.trim(),
+      "status":"New"
+    };
+    
+    final NetworkResponse networkResponse = await NetworkCaller.postRequest(
+      url: Urls.createTask,
+      body: addNewTask
+    );
+
+    if(networkResponse.isSuccess){
+      _clearAllFields();
+      showSnackBarMessage(context, "Successfully added new task");
+    }
+    else{
+      showSnackBarMessage(context, networkResponse.errorMessage, true);
+    }
+
+    setState(() {
+      _addNewTaskInProgress = false;
+    });
+
+  }
+
+  void _clearAllFields(){
+    _titleController.clear();
+    _descriptionController.clear();
+  }
 }

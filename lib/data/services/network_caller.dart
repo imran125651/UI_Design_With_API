@@ -1,8 +1,12 @@
 import 'dart:convert';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
+import 'package:ui_design_with_api/UI/screens/sign_in_screen.dart';
 import 'package:ui_design_with_api/data/models/network_response.dart';
+import '../../app.dart';
 
 class NetworkCaller{
 
@@ -20,6 +24,14 @@ class NetworkCaller{
           isSuccess: true,
           statusCode: response.statusCode,
           responseData: decodedData
+        );
+      }
+      else if(response.statusCode == 401){
+        moveToLogin();
+        return NetworkResponse(
+            isSuccess: false,
+            statusCode: response.statusCode,
+            errorMessage: jsonDecode(response.body)["status"]
         );
       }
       else{
@@ -46,7 +58,8 @@ class NetworkCaller{
         uri,
         body: jsonEncode(body),
         headers: {
-            "Content-Type" : "application/json",
+          "Content-Type" : "application/json",
+          'token' : AuthController.accessToken.toString(),
         }
       );
 
@@ -59,6 +72,14 @@ class NetworkCaller{
             isSuccess: true,
             statusCode: response.statusCode,
             responseData: decodedData
+        );
+      }
+      else if(response.statusCode == 401){
+        moveToLogin();
+        return NetworkResponse(
+            isSuccess: false,
+            statusCode: response.statusCode,
+            errorMessage: jsonDecode(response.body)["status"]
         );
       }
       else{
@@ -82,6 +103,15 @@ class NetworkCaller{
     debugPrint("url: $uri");
     debugPrint("Response code:$statusCode");
     debugPrint(body);
+  }
+
+  static void moveToLogin() async{
+    await AuthController.clearUserData();
+    Navigator.pushAndRemoveUntil(
+        TaskManagerApp.navigatorKey.currentContext!,
+        MaterialPageRoute(builder: (context) => const SignInScreen()),
+        (_)=> false
+    );
   }
 
 }

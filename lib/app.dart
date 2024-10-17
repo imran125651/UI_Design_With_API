@@ -3,13 +3,21 @@ import 'UI/screens/splash_screen.dart';
 import 'UI/utils/app_color.dart';
 import 'main.dart';
 
-class TaskManagerApp extends StatelessWidget {
+class TaskManagerApp extends StatefulWidget {
   const TaskManagerApp({super.key});
 
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  State<TaskManagerApp> createState() => _TaskManagerAppState();
+}
+
+class _TaskManagerAppState extends State<TaskManagerApp> {
   @override
   Widget build(BuildContext context) {
     screenSize = MediaQuery.of(context).size;
     return MaterialApp(
+      navigatorKey: TaskManagerApp.navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: const TextTheme(),
@@ -20,7 +28,6 @@ class TaskManagerApp extends StatelessWidget {
       home: const SplashScreen(),
     );
   }
-
 
   ElevatedButtonThemeData _elevatedButtonThemeData(){
     return ElevatedButtonThemeData(
