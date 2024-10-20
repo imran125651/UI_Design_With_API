@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ui_design_with_api/UI/widgets/center_circular_progress_indicator.dart';
+import 'package:ui_design_with_api/UI/widgets/snack_bar_message.dart';
+import 'package:ui_design_with_api/data/models/network_response.dart';
+import 'package:ui_design_with_api/data/models/task_list_model.dart';
+import 'package:ui_design_with_api/data/services/network_caller.dart';
+import 'package:ui_design_with_api/data/utils/urls.dart';
+import 'package:ui_design_with_api/main.dart';
+import '../../data/models/task_model.dart';
 import '../utils/app_color.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_summary_card.dart';
@@ -12,21 +20,44 @@ class NewTaskScreen extends StatefulWidget {
 }
 
 class _NewTaskScreenState extends State<NewTaskScreen> {
+  bool _getNewTaskInProgress = false;
+  List<TaskModel> _taskModelList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getNewTaskList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          _buildSummaryWidget(),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return const TaskCard();
-              },
-            ),
+      body: RefreshIndicator(
+        triggerMode: RefreshIndicatorTriggerMode.anywhere,
+        onRefresh: () async{
+          await _getNewTaskList();
+        },
+        child: Visibility(
+          visible: !_getNewTaskInProgress,
+          replacement: const CenterCircularProgressIndicator(),
+          child: Column(
+            children: [
+              _buildSummaryWidget(),
+              Expanded(
+                child: _taskModelList.isNotEmpty?
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _taskModelList.length,
+                  itemBuilder: (context, index) {
+                    return TaskCard(taskModel: _taskModelList[index],);
+                  },
+                )
+                  :
+                _noDataFound()
+              ),
+            ],
           ),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onTapAddNewScreen,
@@ -53,8 +84,43 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     );
   }
 
-  void _onTapAddNewScreen() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const AddNewTaskScreen()));
+  void _onTapAddNewScreen() async{
+    bool? shouldRefresh = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddNewTaskScreen()));
+    if(shouldRefresh == true){
+      print("----------------shouldRefresh::$shouldRefresh");
+      _getNewTaskList();
+    }
+  }
+
+  Future<void> _getNewTaskList() async{
+    setState(() {
+      _taskModelList.clear();
+      _getNewTaskInProgress = true;
+    });
+    NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.newTaskList
+    );
+    if(response.isSuccess){
+      TaskListModel taskListModel = TaskListModel.fromJson(response.responseData);
+      _taskModelList.addAll(taskListModel.data ?? []);
+    }
+    else{
+      showSnackBarMessage(context, response.errorMessage, true);
+    }
+
+    setState(() {
+      _getNewTaskInProgress = false;
+    });
+  }
+
+  Widget _noDataFound() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Container(
+        height: screenSize.height * 0.8,
+        alignment: Alignment.center,
+        child: const Text("No Data Found"),
+      ),
+    );
   }
 }

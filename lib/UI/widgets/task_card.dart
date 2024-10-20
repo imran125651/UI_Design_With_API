@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/task_model.dart';
 import '../utils/app_color.dart';
 
 class TaskCard extends StatefulWidget {
 
-  const TaskCard({super.key});
+  const TaskCard({super.key, this.taskModel});
+  final TaskModel? taskModel;
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -23,14 +25,13 @@ class _TaskCardState extends State<TaskCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Lorem ipsum is imply dummy",
+              widget.taskModel?.title ?? "",
               style: textTheme.headlineSmall,
             ),
 
-            const Text(
-                "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."),
+            Text(widget.taskModel?.description ?? "",),
 
-            const Text("Date: 02/02/2020"),
+            Text(widget.taskModel?.createdDate ?? "",),
 
             const SizedBox(height: 10),
             Row(

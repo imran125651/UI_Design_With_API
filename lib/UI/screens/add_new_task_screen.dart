@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
 import 'package:ui_design_with_api/UI/widgets/center_circular_progress_indicator.dart';
 import 'package:ui_design_with_api/UI/widgets/snack_bar_message.dart';
 import 'package:ui_design_with_api/data/models/network_response.dart';
@@ -20,7 +19,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _addNewTaskInProgress = false;
-
+  bool _shouldRefreshPreviousPage = false;
 
 
 
@@ -33,25 +32,32 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const TaskMangerAppBar(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 80),
-              Text(
-                "Add New Task",
-                style: Theme.of(context)
-                    .textTheme
-                    .displaySmall
-                    ?.copyWith(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 15),
-              _buildAddNewTaskForm(),
-            ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result){
+        if(didPop) return;
+        Navigator.pop(context, _shouldRefreshPreviousPage);
+      },
+      child: Scaffold(
+        appBar: const TaskMangerAppBar(),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 80),
+                Text(
+                  "Add New Task",
+                  style: Theme.of(context)
+                      .textTheme
+                      .displaySmall
+                      ?.copyWith(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 15),
+                _buildAddNewTaskForm(),
+              ],
+            ),
           ),
         ),
       ),
@@ -107,6 +113,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
 
   void _addNewTask() async{
     if(!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
 
     setState(() {
       _addNewTaskInProgress = true;
@@ -124,6 +131,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
     );
 
     if(networkResponse.isSuccess){
+      _shouldRefreshPreviousPage = true;
       _clearAllFields();
       showSnackBarMessage(context, "Successfully added new task");
     }
