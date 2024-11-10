@@ -43,7 +43,10 @@ class _CancelledTaskScreenState extends State<CancelledTaskScreen> {
               shrinkWrap: true,
               itemCount: _taskCancelledModelList.length,
               itemBuilder: (context, index) {
-                return TaskCard(taskModel: _taskCancelledModelList[index],);
+                return TaskCard(
+                  taskModel: _taskCancelledModelList[index],
+                  onRefreshList: _getCancelledTaskList,
+                );
               },
             )
                 :

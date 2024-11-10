@@ -6,7 +6,9 @@ import 'package:ui_design_with_api/data/models/task_list_model.dart';
 import 'package:ui_design_with_api/data/services/network_caller.dart';
 import 'package:ui_design_with_api/data/utils/urls.dart';
 import 'package:ui_design_with_api/main.dart';
+import '../../data/models/data_model.dart';
 import '../../data/models/task_model.dart';
+import '../../data/models/task_status_count_model.dart';
 import '../utils/app_color.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_summary_card.dart';
@@ -21,12 +23,15 @@ class NewTaskScreen extends StatefulWidget {
 
 class _NewTaskScreenState extends State<NewTaskScreen> {
   bool _getNewTaskInProgress = false;
-  List<TaskModel> _taskModelList = [];
+  bool _getTaskStatusCountListInProgress = false;
+  List<TaskStatusCountModel> _taskStatusCountList = [];
+  final List<TaskModel> _taskModelList = [];
 
   @override
   void initState() {
     super.initState();
     _getNewTaskList();
+    _getTaskStatusCount();
   }
 
   @override
@@ -49,7 +54,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                   shrinkWrap: true,
                   itemCount: _taskModelList.length,
                   itemBuilder: (context, index) {
-                    return TaskCard(taskModel: _taskModelList[index],);
+                    return TaskCard(
+                      taskModel: _taskModelList[index],
+                      onRefreshList: _getNewTaskList,
+                    );
                   },
                 )
                   :
@@ -76,10 +84,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        TaskSummaryCard(number: "09", progressType: "New"),
-        TaskSummaryCard(number: "09", progressType: "Completed"),
-        TaskSummaryCard(number: "09", progressType: "Cancelled"),
-        TaskSummaryCard(number: "09", progressType: "Progress"),
+        TaskSummaryCard(count: "09", progressType: "New"),
+        TaskSummaryCard(count: "09", progressType: "Completed"),
+        TaskSummaryCard(count: "09", progressType: "Cancelled"),
+        TaskSummaryCard(count: "09", progressType: "Progress"),
       ],
     );
   }
@@ -87,7 +95,6 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   void _onTapAddNewScreen() async{
     bool? shouldRefresh = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddNewTaskScreen()));
     if(shouldRefresh == true){
-      print("----------------shouldRefresh::$shouldRefresh");
       _getNewTaskList();
     }
   }
@@ -97,9 +104,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       _taskModelList.clear();
       _getNewTaskInProgress = true;
     });
-    NetworkResponse response = await NetworkCaller.getRequest(
-        url: Urls.newTaskList
-    );
+    NetworkResponse response = await NetworkCaller.getRequest( url: Urls.newTaskList);
     if(response.isSuccess){
       TaskListModel taskListModel = TaskListModel.fromJson(response.responseData);
       _taskModelList.addAll(taskListModel.data ?? []);
@@ -110,6 +115,28 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
 
     setState(() {
       _getNewTaskInProgress = false;
+    });
+  }
+
+
+  Future<void> _getTaskStatusCount() async{
+    _taskStatusCountList.clear();
+    _getTaskStatusCountListInProgress = true;
+    setState(() {});
+
+    NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.taskCountStatus
+    );
+    if(response.isSuccess){
+      TaskStatusCountModel taskStatusCountModel = TaskStatusCountModel.fromJson(response.responseData);
+      _taskStatusCountList = taskStatusCountModel.taskStatusListModel!.cast<TaskStatusCountModel>();
+    }
+    else{
+      showSnackBarMessage(context, response.errorMessage, true);
+    }
+
+    setState(() {
+      _getTaskStatusCountListInProgress = false;
     });
   }
 

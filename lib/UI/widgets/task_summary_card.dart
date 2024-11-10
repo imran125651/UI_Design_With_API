@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class TaskSummaryCard extends StatelessWidget {
-  final String number;
+  final String count;
   final String progressType;
 
-  const TaskSummaryCard({super.key, required this.number, required this.progressType});
+  const TaskSummaryCard({super.key, required this.count, required this.progressType});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class TaskSummaryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(number, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
+                Text(count, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
                 FittedBox(child: Text(progressType, style: const TextStyle(fontSize: 12)))
               ],
             ),

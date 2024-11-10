@@ -42,7 +42,10 @@ class _ProgressTaskScreenState extends State<ProgressTaskScreen> {
               shrinkWrap: true,
               itemCount: _taskProgressModelList.length,
               itemBuilder: (context, index) {
-                return TaskCard(taskModel: _taskProgressModelList[index],);
+                return TaskCard(
+                  taskModel: _taskProgressModelList[index],
+                  onRefreshList: _getCancelledTaskList,
+                );
               },
             )
                 :

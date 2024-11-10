@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:ui_design_with_api/UI/controller/auth_controller.dart';
@@ -13,6 +11,7 @@ class NetworkCaller{
 
   static Future<NetworkResponse> getRequest({required String url}) async{
     try{
+      print(AuthController.accessToken.toString());
       Uri uri = Uri.parse(url);
       final Response response  = await get(
           uri,

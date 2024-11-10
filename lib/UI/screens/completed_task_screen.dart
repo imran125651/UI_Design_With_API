@@ -42,7 +42,10 @@ class _CompletedTaskScreenState extends State<CompletedTaskScreen> {
             shrinkWrap: true,
             itemCount: _taskCompletedModelList.length,
             itemBuilder: (context, index) {
-              return TaskCard(taskModel: _taskCompletedModelList[index],);
+              return TaskCard(
+                taskModel: _taskCompletedModelList[index],
+                onRefreshList: _getCompletedTaskList,
+              );
             },
           )
               :
